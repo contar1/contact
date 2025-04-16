@@ -18,19 +18,56 @@
       }
       #status {
         margin-top: 20px;
+        font-size: 22px
         font-weight: bold;
       }
+
+      #loader {
+            display: none;
+            margin: 40px auto;
+        }
+
+        .circle {
+            border: 16px solid #f3f3f3;
+            border-top: 16px solid #003087;
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 20px;
+            margin-top: 15px;
+            font-weight: 600;
+            color: #003087;
+        }
     </style>
   </head>
   <body>
     <h1>🔔 <strong>I have</strong> shared several contacts with you!</h1>
     <p>Click below to save it to your address book:</p>
     <button onclick="gotchaTime()">👇 View in Contacts Book 👇</button>
+    <div id="loader">
+        <div class="circle"></div>
+        <div class="loading-text">Loading contact securely...</div>
+    </div>
+ 
+    
     <p id="status"></p>
 
     <script>
       async function gotchaTime() {
+        const loader = document.getElementById('loader');
         const statusEl = document.getElementById("status");
+        
+        loader.style.display = "block";
         statusEl.textContent = "Loading...";
 
         try {
@@ -44,12 +81,18 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ contacts }),
           });
-
-          statusEl.innerHTML = `
-                    <span style="color:red; font-size: 22px;">😂 GOTCHAAA!😂</span><br><br>
-                    <small style="color: gray;"Your L.></small>
-                `;
-        } catch (err) {
+           // Simulate suspense
+                setTimeout(() => {
+                    loader.style.display = "none";
+                    statusEl.innerHTML = `
+                        <span style="font-size: 30px; color:red;">😂 GOTCHAAA!  😂</span><br><br>
+                        <small>Always!</small>
+                    `;
+                }, 2000);
+          
+        } 
+        catch (err) {
+          loader.style.display = "none";
           statusEl.innerHTML = `<span style="color:green;">You live another day.</span>`;
         }
       }
